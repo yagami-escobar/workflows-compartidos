@@ -76,7 +76,6 @@ jobs:
           file: ${{ inputs.dockerfile-path }}
           push: true
           tags: |
-            pablokbs/${{ inputs.image-name }}:latest
             pablokbs/${{ inputs.image-name }}:${{ github.sha }}
             pablokbs/${{ inputs.image-name }}:${{ steps.date.outputs.DATE }}
           outputs: |
@@ -85,5 +84,5 @@ jobs:
       - name: Set output variables
         id: vars
         run: |
-          echo "full_image_tag=pablokbs/${{ inputs.image-name }}:latest" >> $GITHUB_OUTPUT
+          echo "full_image_tag=pablokbs/${{ inputs.image-name }}:${{ github.sha }}" >> $GITHUB_OUTPUT
           echo "image_digest=${{ steps.build_and_push.outputs.digest }}" >> $GITHUB_OUTPUT
