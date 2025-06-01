@@ -76,10 +76,10 @@ jobs:
           file: ${{ inputs.dockerfile-path }} # Usa el input para la ruta del Dockerfile
           push: true
           tags: |
-            ghcr.io/${{ github.repository_owner }}/${{ inputs.image-name }}:latest
-            ghcr.io/${{ github.repository_owner }}/${{ inputs.image-name }}:${{ github.sha }}
-            ghcr.io/${{ github.repository_owner }}/${{ inputs.image-name }}:${{ steps.date.outputs.DATE }}
+            pablokbs/${{ inputs.image-name }}:latest
+            pablokbs/${{ inputs.image-name }}:${{ github.sha }}
+            pablokbs/${{ inputs.image-name }}:${{ steps.date.outputs.DATE }}
           # Aquí definimos un output de este paso para usarlo en el output del job y del workflow.
           outputs: |
-            type=raw,name=full_image_tag,value=ghcr.io/${{ github.repository_owner }}/${{ inputs.image-name }}:latest
+            type=raw,name=full_image_tag,value=pablokbs/${{ inputs.image-name }}:latest
             type=raw,name=image_digest,value=${{ steps.build_and_push.outputs.digest }}
