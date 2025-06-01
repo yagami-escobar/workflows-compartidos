@@ -32,7 +32,12 @@ on:
 
 jobs:
   deploy_to_kubernetes:
-    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        runner: ["ubuntu-latest", "blacksmith-4vcpu-ubuntu-2404"]
+      fail-fast: false  # Permite que los jobs continúen incluso si uno falla
+    
+    runs-on: ${{ matrix.runner }}
 
     steps:
       - name: Checkout repository

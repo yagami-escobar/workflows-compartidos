@@ -40,7 +40,12 @@ on:
 
 jobs:
   build_image:
-    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        runner: ["ubuntu-latest", "blacksmith-4vcpu-ubuntu-2404"]
+      fail-fast: false  # Permite que los jobs continúen incluso si uno falla
+    
+    runs-on: ${{ matrix.runner }}
 
     # Se usa 'id' para poder referenciar los outputs de este job más adelante.
     outputs:
