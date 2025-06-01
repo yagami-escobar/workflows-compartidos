@@ -20,23 +20,20 @@ on:
         required: false
         type: string
         default: '.' # Por defecto, el directorio raíz del repositorio
+      registry-username:
+        description: 'Nombre de usuario para el registro de Docker (ej. Docker Hub, GHCR)'
+        required: true
+        type: string
+      registry-token:
+        description: 'Token o contraseña para el registro de Docker'
+        required: true
+        type: string
 
     # Definimos los 'outputs' que este workflow puede devolver al workflow que lo invocó.
     outputs:
       image-tag:
-        description: 'El tag completo de la imagen Docker construida (ej. ghcr.io/org/repo/my-app-image:latest)'
+        description: 'El tag completo de la imagen Docker construida'
         value: ${{ jobs.build_image.outputs.full_image_tag }}
-
-    # Definimos los 'secrets' que este workflow espera recibir.
-    # Los secretos NO se definen aquí; solo se declaran que este workflow los necesita.
-    # Se pasan desde el workflow que lo invoca.
-    secrets:
-      REGISTRY_USERNAME:
-        description: 'Nombre de usuario para el registro de Docker (ej. Docker Hub, GHCR)'
-        required: true
-      REGISTRY_TOKEN:
-        description: 'Token o contraseña para el registro de Docker'
-        required: true
 
 jobs:
   build_image:
@@ -61,8 +58,8 @@ jobs:
       - name: Log in to Docker Registry
         uses: docker/login-action@v3
         with:
-          username: ${{ secrets.REGISTRY_USERNAME }}
-          password: ${{ secrets.REGISTRY_TOKEN }}
+          username: ${{ inputs.registry-username }}
+          password: ${{ inputs.registry-token }}
 
       - name: Get current date for image tag
         id: date
