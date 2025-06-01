@@ -1,0 +1,96 @@
+name: Deploy to Kubernetes Reusable
+
+on:
+  # El trigger 'workflow_call' indica que este workflow puede ser invocado por otros.
+  workflow_call:
+    # Definimos los 'inputs' que este workflow espera recibir.
+    inputs:
+      image:
+        description: 'La imagen Docker completa a desplegar (ej. ghcr.io/org/repo/mi-imagen:tag)'
+        required: true
+        type: string
+      deployment-name:
+        description: 'El nombre del Deployment de Kubernetes a crear o actualizar'
+        required: true
+        type: string
+      namespace:
+        description: 'El Namespace de Kubernetes donde se realizará el despliegue'
+        required: true
+        type: string
+      container-port:
+        description: 'El puerto que expone el contenedor en el Deployment'
+        required: false
+        type: number
+        default: 80 # Puerto por defecto para aplicaciones web
+
+    # Definimos los 'secrets' que este workflow necesita.
+    # El valor real de este secreto se pasará desde el workflow que lo invoca.
+    secrets:
+      KUBECONFIG:
+        description: 'El contenido base64 del archivo KUBECONFIG para autenticarse con el clúster de Kubernetes'
+        required: true
+
+jobs:
+  deploy_to_kubernetes:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Install kubectl
+        uses: azure/setup-kubectl@v3
+        with:
+          version: 'v1.28.0' # Puedes especificar la versión de kubectl que prefieras
+
+      - name: Set up Kubernetes configuration
+        run: |
+          # Crea el directorio .kube si no existe
+          mkdir -p ~/.kube
+          # Decodifica el secreto KUBECONFIG (que debe estar en base64) y lo guarda en el archivo de configuración
+          echo "${{ secrets.KUBECONFIG }}" | base64 -d > ~/.kube/config
+          # Establece permisos seguros para el archivo de configuración
+          chmod 600 ~/.kube/config
+        # Nota: Algunos KUBECONFIGs no están en base64 por defecto. Si el tuyo no lo está,
+        # quita el `| base64 -d` y asegúrate de que el secreto sea el contenido sin codificar.
+
+      - name: Create Kubernetes Deployment manifest
+        id: generate_manifest
+        run: |
+          cat <<EOF > deployment.yaml
+          apiVersion: apps/v1
+          kind: Deployment
+          metadata:
+            name: ${{ inputs.deployment-name }}
+            namespace: ${{ inputs.namespace }}
+            labels:
+              app: ${{ inputs.deployment-name }}
+          spec:
+            replicas: 1 # Puedes hacer esto un input si quieres controlarlo
+            selector:
+              matchLabels:
+                app: ${{ inputs.deployment-name }}
+            template:
+              metadata:
+                labels:
+                  app: ${{ inputs.deployment-name }}
+              spec:
+                containers:
+                - name: ${{ inputs.deployment-name }}
+                  image: ${{ inputs.image }}
+                  ports:
+                  - containerPort: ${{ inputs.container-port }}
+          EOF
+          echo "::notice file=deployment.yaml::Generated Deployment manifest."
+          cat deployment.yaml # Opcional: para ver el manifiesto generado en los logs
+
+      - name: Apply Kubernetes manifest
+        run: |
+          kubectl apply -f deployment.yaml -n ${{ inputs.namespace }}
+          echo "::notice::Deployment ${{ inputs.deployment-name }} applied successfully in namespace ${{ inputs.namespace }} with image ${{ inputs.image }}"
+
+      - name: Wait for Deployment rollout (optional)
+        run: |
+          kubectl rollout status deployment/${{ inputs.deployment-name }} -n ${{ inputs.namespace }} --timeout=5m
+        # Este paso es útil para esperar a que el despliegue se complete antes de continuar.
+        # Puedes ajustar el --timeout según tus necesidades.
