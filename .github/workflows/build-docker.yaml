@@ -49,7 +49,7 @@ jobs:
 
     # Se usa 'id' para poder referenciar los outputs de este job más adelante.
     outputs:
-      full_image_tag: ${{ steps.build_and_push.outputs.full_image_tag }}
+      full_image_tag: ${{ steps.vars.outputs.full_image_tag }}
 
     steps:
       - name: Checkout repository
@@ -72,14 +72,18 @@ jobs:
         id: build_and_push
         uses: docker/build-push-action@v5
         with:
-          context: ${{ inputs.context-path }} # Usa el input para la ruta del contexto
-          file: ${{ inputs.dockerfile-path }} # Usa el input para la ruta del Dockerfile
+          context: ${{ inputs.context-path }}
+          file: ${{ inputs.dockerfile-path }}
           push: true
           tags: |
             pablokbs/${{ inputs.image-name }}:latest
             pablokbs/${{ inputs.image-name }}:${{ github.sha }}
             pablokbs/${{ inputs.image-name }}:${{ steps.date.outputs.DATE }}
-          # Aquí definimos un output de este paso para usarlo en el output del job y del workflow.
           outputs: |
-            type=raw,name=full_image_tag,value=pablokbs/${{ inputs.image-name }}:latest
-            type=raw,name=image_digest,value=${{ steps.build_and_push.outputs.digest }}
+            type=image,name=pablokbs/${{ inputs.image-name }},push-by-digest=true,name-canonical=true,push=true
+
+      - name: Set output variables
+        id: vars
+        run: |
+          echo "full_image_tag=pablokbs/${{ inputs.image-name }}:latest" >> $GITHUB_OUTPUT
+          echo "image_digest=${{ steps.build_and_push.outputs.digest }}" >> $GITHUB_OUTPUT
