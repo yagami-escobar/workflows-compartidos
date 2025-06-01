@@ -24,10 +24,11 @@ on:
         description: 'Nombre de usuario para el registro de Docker (ej. Docker Hub, GHCR)'
         required: true
         type: string
-      registry-token:
+
+    secrets:
+      REGISTRY_TOKEN:
         description: 'Token o contraseña para el registro de Docker'
         required: true
-        type: string
 
     # Definimos los 'outputs' que este workflow puede devolver al workflow que lo invocó.
     outputs:
@@ -59,7 +60,7 @@ jobs:
         uses: docker/login-action@v3
         with:
           username: ${{ inputs.registry-username }}
-          password: ${{ inputs.registry-token }}
+          password: ${{ secrets.REGISTRY_TOKEN }}
 
       - name: Get current date for image tag
         id: date
