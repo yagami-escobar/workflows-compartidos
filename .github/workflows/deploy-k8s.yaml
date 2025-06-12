@@ -25,10 +25,10 @@ on:
 
     # Definimos los 'secrets' que este workflow necesita.
     # El valor real de este secreto se pasará desde el workflow que lo invoca.
-    secrets:
-      KUBECONFIG:
-        description: 'El contenido base64 del archivo KUBECONFIG para autenticarse con el clúster de Kubernetes'
-        required: true
+    # secrets:
+    #   KUBECONFIG:
+    #     description: 'El contenido base64 del archivo KUBECONFIG para autenticarse con el clúster de Kubernetes'
+    #     required: true
 
 jobs:
   deploy_to_kubernetes:
@@ -63,14 +63,14 @@ jobs:
         run: |
           echo "$KUBECONFIG"
 
-      - name: Set up Kubernetes configuration
-        run: |
-          # Crea el directorio .kube si no existe
-          mkdir -p ~/.kube
-          # Decodifica el secreto KUBECONFIG (que debe estar en base64) y lo guarda en el archivo de configuración
-          echo "${{ secrets.KUBECONFIG }}" | base64 -d > ~/.kube/config
-          # Establece permisos seguros para el archivo de configuración
-          chmod 600 ~/.kube/config
+      # - name: Set up Kubernetes configuration
+      #   run: |
+      #     # Crea el directorio .kube si no existe
+      #     mkdir -p ~/.kube
+      #     # Decodifica el secreto KUBECONFIG (que debe estar en base64) y lo guarda en el archivo de configuración
+      #     echo "${{ secrets.KUBECONFIG }}" | base64 -d > ~/.kube/config
+      #     # Establece permisos seguros para el archivo de configuración
+      #     chmod 600 ~/.kube/config
         # Nota: Algunos KUBECONFIGs no están en base64 por defecto. Si el tuyo no lo está,
         # quita el `| base64 -d` y asegúrate de que el secreto sea el contenido sin codificar.
 
