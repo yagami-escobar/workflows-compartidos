@@ -47,6 +47,21 @@ jobs:
         uses: azure/setup-kubectl@v3
         with:
           version: 'v1.28.0' # Puedes especificar la versión de kubectl que prefieras
+          
+      - name: Install kind
+        run: |
+          curl -Lo ./kind https://kind.sigs.k8s.io/dl/v.0.22.0/kind-linux-amd64
+          chmod +x ./kind
+          sudo mv -v ./kind /usr/local/bin/kind
+      
+      - name: Create Kind Cluster
+        run: |
+          kind create cluster  --name yagami-cluster
+          kubectl cluster-info --context kind-yagami-cluster
+
+      - name: Show Kubeconfig
+        run: |
+          echo "$KUBECONFIG"
 
       - name: Set up Kubernetes configuration
         run: |
